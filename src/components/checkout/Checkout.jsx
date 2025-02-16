@@ -3,72 +3,167 @@ import { useState, useMemo } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { cities } from "@/utils/city";
-
-const citiesdata = cities;
+import { saveOrderToFirestore } from "@/lib/firebaseService";
 
 const Checkout = () => {
   // Form states
-  const [selectedCity, setSelectedCity] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    phone: "",
+    country: "Pakistan",
+    newsletter: false,
+  });
 
-  // Payment and billing states
+  const [errors, setErrors] = useState({});
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
 
-  // Get cart items and total
-  const { items = [], totalAmount = 0 } = useCart() || {};
+  // Cart data
+  const { items = [], totalAmount = 0,clearCart } = useCart() || {};
   const shipping = 250;
   const total = totalAmount + shipping;
 
-  // Filter cities based on search query
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  // City search filter
   const filteredCities = useMemo(() => {
     return cities.filter((city) =>
       city.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]);
 
-  const handleCheckout = () => {
-    if (!selectedCity || !email || !phone) {
-      setError(true);
-      return;
+  // Select city
+  const handleCitySelect = (city) => {
+    setFormData((prev) => ({ ...prev, city }));
+    setShowDropdown(false);
+    setSearchQuery("");
+    if (errors.city) {
+      setErrors((prev) => ({ ...prev, city: "" }));
     }
-    // Process checkout
-    console.log("Processing checkout...");
+  };
+
+  // Validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.firstName) newErrors.firstName = "First name is required";
+    if (!formData.lastName) newErrors.lastName = "Last name is required";
+    if (!formData.address) newErrors.address = "Address is required";
+    if (!formData.city) newErrors.city = "City is required";
+    if (!formData.phone) newErrors.phone = "Phone number is required";
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    // Phone validation
+    const phoneRegex = /^[0-9]{11}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Invalid phone number format";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleCheckout = async () => {
+    if (validateForm()) {
+      const orderData = {
+        customer: formData,
+        items,
+        totalAmount,
+        shipping,
+        total,
+        paymentMethod,
+        billingSameAsShipping,
+      };
+  
+      try {
+        const orderId = await saveOrderToFirestore(orderData);
+        console.log("Order placed successfully! Order ID:", orderId);
+        alert("Order placed successfully!");
+        //clear form data
+        setFormData({
+          email: "",
+          firstName: "",
+          lastName: "",
+          address: "",
+          city: "",
+          postalCode: "",
+          phone: "",
+          country: "Pakistan",
+          newsletter: false,
+        });
+        //empty cart
+        clearCart();
+        
+
+      } catch (error) {
+        alert(error.message);
+      }
+    }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-6 grid md:grid-cols-3 gap-8">
-      {/* Left Section - Checkout Form */}
       <div className="md:col-span-2">
+        {/* Contact Section */}
         <h2 className="text-2xl font-bold mb-4">Contact</h2>
         <input
           type="email"
+          name="email"
           placeholder="Email"
-          className="w-full p-2 border rounded mb-4"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          className={`w-full p-2 border rounded mb-1 ${errors.email ? "border-red-500" : ""}`}
+          value={formData.email}
+          onChange={handleChange}
         />
+        {errors.email && (
+          <p className="text-red-500 text-sm mb-4">{errors.email}</p>
+        )}
+
         <div className="flex items-center mb-6">
-          <input type="checkbox" id="newsletter" className="mr-2" />
+          <input
+            type="checkbox"
+            name="newsletter"
+            id="newsletter"
+            checked={formData.newsletter}
+            onChange={handleChange}
+            className="mr-2"
+          />
           <label htmlFor="newsletter">Email me with news and offers</label>
         </div>
 
-        <h2 className="text-2xl font-bold mb-4">Delivery</h2>
-        {/* Updated City Dropdown */}
+        {/* Delivery Section */}
         <div className="relative mb-4">
           <div
             className={`w-full p-2 border rounded flex justify-between items-center cursor-pointer ${
-              error ? "border-red-500" : ""
+              errors.city ? "border-red-500" : ""
             }`}
             onClick={() => setShowDropdown(!showDropdown)}
           >
-            <span>{selectedCity || "Select city from dropdown"}</span>
+            <span>{formData.city || "Select city from dropdown"}</span>
             <ChevronDown />
           </div>
           {showDropdown && (
@@ -91,12 +186,7 @@ const Checkout = () => {
                   <li
                     key={city}
                     className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      setSelectedCity(city);
-                      setShowDropdown(false);
-                      setSearchQuery("");
-                      setError(false);
-                    }}
+                    onClick={() => handleCitySelect(city)}
                   >
                     {city}
                   </li>
@@ -109,7 +199,7 @@ const Checkout = () => {
               </ul>
             </div>
           )}
-          {error && (
+          {errors.city && (
             <p className="text-red-500 text-sm mt-1">
               Please select city from dropdown
             </p>
@@ -125,36 +215,72 @@ const Checkout = () => {
           className="w-full p-2 border rounded mb-4"
         />
         <div className="grid grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="First name"
-            className="w-full p-2 border rounded mb-4"
-          />
-          <input
-            type="text"
-            placeholder="Last name"
-            className="w-full p-2 border rounded mb-4"
-          />
+          <div>
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First name"
+              className={`w-full p-2 border rounded mb-1 ${errors.firstName ? "border-red-500" : ""}`}
+              value={formData.firstName}
+              onChange={handleChange}
+            />
+            {errors.firstName && (
+              <p className="text-red-500 text-sm">{errors.firstName}</p>
+            )}
+          </div>
+          <div>
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last name"
+              className={`w-full p-2 border rounded mb-1 ${errors.lastName ? "border-red-500" : ""}`}
+              value={formData.lastName}
+              onChange={handleChange}
+            />
+            {errors.lastName && (
+              <p className="text-red-500 text-sm">{errors.lastName}</p>
+            )}
+          </div>
         </div>
         <input
           type="text"
+          name="address"
           placeholder="Address"
-          className="w-full p-2 border rounded mb-4"
+          className={`w-full p-2 border rounded mb-1 ${errors.address ? "border-red-500" : ""}`}
+          value={formData.address}
+          onChange={handleChange}
         />
+        {errors.address && (
+          <p className="text-red-500 text-sm mb-4">{errors.address}</p>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <input
             type="text"
             placeholder="City"
-            className={`w-full p-2 border rounded mb-4 ${error ? "border-red-500" : ""}`}
+            className={`w-full p-2 border rounded mb-4 ${errors.city ? "border-red-500" : ""}`}
             disabled
-            value={selectedCity}
+            value={formData.city}
           />
           <input
             type="text"
+            name="postalCode"
             placeholder="Postal code (optional)"
             className="w-full p-2 border rounded mb-4"
+            value={formData.postalCode}
+            onChange={handleChange}
           />
         </div>
+        <input
+          type="text"
+          name="phone"
+          placeholder="Phone"
+          className={`w-full p-2 border rounded mb-1 ${errors.phone ? "border-red-500" : ""}`}
+          value={formData.phone}
+          onChange={handleChange}
+        />
+        {errors.phone && (
+          <p className="text-red-500 text-sm mb-4">{errors.phone}</p>
+        )}
         <div className="border rounded p-4 mb-4">
           <div className="mb-2">
             <input
