@@ -1,30 +1,18 @@
 import AdminOrdersTable from "@/components/admin/Orders";
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 
-// Server-side data fetching
 async function getOrders() {
-  const ordersQuery = query(
-    collection(db, "orders"),
-    orderBy("createdAt", "desc")
-  );
-  
-  try {
-    const querySnapshot = await getDocs(ordersQuery);
-    const ordersData = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      // Convert Timestamp to string for serialization
-      createdAt: doc.data().createdAt.toDate().toISOString(),
-    }));
-    return ordersData;
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    return [];
-  }
-}
+  const response = await fetch(`http://localhost:3000/api/orders`, {
+    next: { revalidate: 300 },
+    cache: "force-cache",
 
-export const revalidate = 60; // Revalidate every 60 seconds
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch orders');
+  }
+  
+  return response.json();
+}
 
 const AdminOrdersPage = async () => {
   const orders = await getOrders();
