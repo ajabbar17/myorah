@@ -26,7 +26,7 @@ const page = async () => {
   const products = await getProducts();
 
   return (
-    <div className="w-screen">
+    <div className=" ">
         {/* <HeroSection url="/pendant.jpg" title="Pendants" /> */}
     <div className="w-full xl:w-[90%] mx-auto py-10">
       <h2 className="text-3xl font-semibold text-center mb-6">

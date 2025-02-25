@@ -3,7 +3,7 @@ import AdminOrdersTable from "@/components/admin/Orders";
 async function getOrders() {
   const response = await fetch(`http://localhost:3000/api/orders`, {
     next: { revalidate: 300 },
-    cache: "force-cache",
+   
 
   });
   
