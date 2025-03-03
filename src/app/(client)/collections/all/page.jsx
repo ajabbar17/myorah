@@ -26,8 +26,8 @@ const page = async () => {
   const products = await getProducts();
 
   return (
-    <div className="w-screen">
-        {/* <HeroSection url="/pendant.jpg" title="Pendants" /> */}
+    <div className="">
+        {/* <HeroSection url="/hero.jpg" title="ALL COLLECTION" /> */}
     <div className="w-full xl:w-[90%] mx-auto py-10">
       <h2 className="text-3xl font-semibold text-center mb-6">
         All Products

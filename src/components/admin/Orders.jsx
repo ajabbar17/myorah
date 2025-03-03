@@ -36,6 +36,7 @@ const AdminOrdersTable = ({ initialOrders }) => {
     return statusColors[status?.toLowerCase()] || "bg-gray-50 text-gray-700 border-gray-200";
   };
 
+  console.log(initialOrders);
   return (
     <div className="min-h-screen bg-[#f6f6f7]">
       <div className="max-w-[1400px] mx-auto p-6 space-y-6">
@@ -94,6 +95,9 @@ const AdminOrdersTable = ({ initialOrders }) => {
                     Order
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Order No
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -116,6 +120,9 @@ const AdminOrdersTable = ({ initialOrders }) => {
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#008060]">
                       #{order.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#008060]">
+                      #{order.orderNo}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-1.5">

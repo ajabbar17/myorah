@@ -4,6 +4,8 @@ import { ChevronDown, Search } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { cities } from "@/utils/city";
 import { saveOrderToFirestore } from "@/lib/firebaseService";
+import OrderSuccessModal from "./Modal";
+import { useRouter } from "next/navigation";
 
 const Checkout = () => {
   // Form states
@@ -24,9 +26,11 @@ const Checkout = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   // Cart data
-  const { items = [], totalAmount = 0,clearCart } = useCart() || {};
+  const { items = [], totalAmount = 0, clearCart } = useCart() || {};
   const shipping = 250;
   const total = totalAmount + shipping;
 
@@ -87,6 +91,11 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    router.push("/"); // Redirect to home page after closing modal
+  };
+
   // Handle form submission
   const handleCheckout = async () => {
     if (validateForm()) {
@@ -98,13 +107,14 @@ const Checkout = () => {
         total,
         paymentMethod,
         billingSameAsShipping,
+        createdAt: new Date(),
+        status: "pending",
       };
-  
+
       try {
-        const orderId = await saveOrderToFirestore(orderData);
-        console.log("Order placed successfully! Order ID:", orderId);
-        alert("Order placed successfully!");
-        //clear form data
+        await saveOrderToFirestore(orderData);
+        clearCart();
+        setIsModalOpen(true);
         setFormData({
           email: "",
           firstName: "",
@@ -116,12 +126,9 @@ const Checkout = () => {
           country: "Pakistan",
           newsletter: false,
         });
-        //empty cart
-        clearCart();
-        
-
       } catch (error) {
-        alert(error.message);
+        console.error("Checkout error:", error);
+        alert("There was an error processing your order. Please try again.");
       }
     }
   };
@@ -171,14 +178,7 @@ const Checkout = () => {
               <div className="p-2 border-b sticky top-0 bg-white">
                 <div className="flex items-center gap-2 bg-gray-50 rounded px-2">
                   <Search size={20} className="text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search city..."
-                    className="w-full p-2 outline-none bg-transparent"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                  <input type="text" onClick={(e) => e.stopPropagation()} />
                 </div>
               </div>
               <ul className="max-h-60 overflow-y-auto">
@@ -382,6 +382,7 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+      <OrderSuccessModal isOpen={isModalOpen} onClose={handleModalClose} />
     </div>
   );
 };
