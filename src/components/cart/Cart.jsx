@@ -19,7 +19,7 @@ const Cart = () => {
         <div className="text-center py-8">
           <p className="text-gray-500 mb-4">Your cart is empty</p>
           <Link
-            href="/shop"
+            href="/"
             className="text-black underline hover:text-gray-600"
           >
             Continue Shopping
@@ -102,7 +102,7 @@ const Cart = () => {
               CHECKOUT
             </button>
             </Link>
-            <Link href="/shop">
+            <Link href="/">
               <button className="w-full border py-3 mt-2 font-bold">
                 CONTINUE SHOPPING
               </button>

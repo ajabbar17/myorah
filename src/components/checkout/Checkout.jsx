@@ -311,7 +311,7 @@ const Checkout = () => {
               Same as shipping address
             </label>
           </div>
-          <div>
+          {/* <div>
             <input
               type="radio"
               id="different-address"
@@ -322,7 +322,7 @@ const Checkout = () => {
             <label htmlFor="different-address" className="ml-2 font-semibold">
               Use a different billing address
             </label>
-          </div>
+          </div> */}
           {/* Checkout Button */}
         </div>
         <button

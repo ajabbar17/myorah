@@ -1,8 +1,25 @@
+"use client"
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Printer, MoreVertical, Clock, Package, CreditCard } from 'lucide-react';
 
 const OrderDetails = ({ order }) => {
+
+  const sendEmail = async () => {
+    try {
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      });
+  
+      const data = await response.json();
+      alert(data.message || "Email sent!");
+    } catch (error) {
+      console.error("Email error:", error);
+      alert("Failed to send email.");
+    }
+  };
 
 
   const formatDate = (timestamp) => {
@@ -46,12 +63,13 @@ const OrderDetails = ({ order }) => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <h1 className="text-xl font-medium">Order {order.id}</h1>
+            <h1 className="text-xl font-medium">Order {order.orderNo}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-              <Printer className="h-4 w-4 mr-2" />
-              Print
+            <button
+            onClick={sendEmail}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600 outline-none">
+              Send Confirmation
             </button>
             <button className="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 bg-white hover:bg-gray-50">
               <MoreVertical className="h-4 w-4" />
@@ -103,7 +121,7 @@ const OrderDetails = ({ order }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-gray-900 truncate">
-                      {item.description}
+                      {item.name}
                     </h3>
                     <p className="text-sm text-gray-500">{item.quantity} × Rs{item.discountedPrice}</p>
                   </div>

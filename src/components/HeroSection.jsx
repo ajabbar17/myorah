@@ -6,14 +6,14 @@ const HeroSection = () => {
   return (
     <section className="relative h-[500px] md:h-[600px] flex items-center justify-center">
       {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/hero.jpg"
-          alt="Hero Background"
-          layout="fill"
-          objectFit="cover"
-        />
-        {/* Dark Overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url("hero.jpg")`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="absolute inset-0 bg-black/45" />
       </div>
 

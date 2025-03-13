@@ -1,32 +1,25 @@
-"use client";
 import Image from "next/image";
 import Link from "next/link";
 
-const HeroSection = ({url,title}) => {
+const HeroSection = ({ url, title }) => {
   return (
-    <section className="relative h-[500px] md:h-[600px] flex items-center justify-center">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src={url}
-          alt="Hero Background"
-          layout="fill"
-          objectFit="cover"
-        />
-        {/* Dark Overlay */}
+    <section className="relative h-[300px] md:h-[400px] w-full overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="absolute inset-0 bg-black/45" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center text-white">
-        <h1 className="text-2xl md:text-6xl font-semibold">
-            {title}
+      <div className="relative h-full flex items-center justify-center z-10">
+        <h1 className="text-2xl md:text-5xl font-semibold text-white px-4 text-center">
+          {title}
         </h1>
-        {/* <Link href="/shop">
-          <button className="mt-4 border border-white px-6 py-2 text-white hover:bg-white hover:text-black transition">
-            Shop all
-          </button>
-        </Link> */}
       </div>
     </section>
   );

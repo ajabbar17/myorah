@@ -1,28 +1,45 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import { client } from "@/sanity/lib/client";
 
-// Function to fetch products
-async function getProducts() {
-  const query = `*[_type == "product"] | order(_createdAt desc) [0...12] {
-    _id,
-    name,
-    "image": image.asset->url,
-    actualPrice,
-    discountedPrice,
-    "slug": slug.current
-  }`;
+const ProductList = () => {
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  try {
-    const products = await client.fetch(query);
-    return products;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    return [];
+  // Fetch products from Sanity
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const query = `*[_type == "product"] | order(_createdAt desc) [0...23] {
+          _id,
+          name,
+          "image": image.asset->url,
+          actualPrice,
+          discountedPrice,
+          "slug": slug.current
+        }`;
+
+        const productsData = await client.fetch(query);
+        setProducts(productsData);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black"></div>
+      </div>
+    );
   }
-}
-
-const ProductList = async () => {
-  const products = await getProducts();
 
   return (
     <div className="w-full xl:w-[90%] mx-auto py-10">
@@ -34,6 +51,10 @@ const ProductList = async () => {
           <ProductCard key={product._id} product={product} />
         ))}
       </div>
+
+      {products.length === 0 && (
+        <p className="text-center text-gray-500 my-8">No products found</p>
+      )}
     </div>
   );
 };

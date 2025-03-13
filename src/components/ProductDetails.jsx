@@ -27,7 +27,7 @@ const ProductDetails = ({ product }) => {
   };
 
   const handleBuyNow = () => {
-    //handleAddToCart();
+    handleAddToCart();
     router.push("/cart");
   };
 

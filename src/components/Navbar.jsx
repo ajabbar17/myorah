@@ -101,7 +101,6 @@ const Navbar = () => {
           {/* Right Section */}
           <div
           className="absolute right-0 flex items-center space-x-4">
-            <Search className="cursor-pointer w-6 h-6" />
             <Link href="/cart">
             <div className="relative">
               <ShoppingCart className="cursor-pointer w-6 h-6" />
